@@ -9,16 +9,25 @@ class bond {
   bond(atom atom1) {
     strength = 1;
     this.atom1 = atom1;
-    atom1.bonds++;
     start.set(atom1.location);
     end.set(mouseX, mouseY);
   }
 
-  void complete(atom a2) {
-    if (a2.bonds < a2.maxBonds) {
-      atom2 = a2;
-      atom2.bonds++;
+  void complete(atom atom2) {
+    if (atom2.bonds < atom2.maxBonds) {
+      this.atom2 = atom2;
       end.set(atom2.location);
+      atom1.bonding[0][atom1.atomsBonded] = atom2.number;
+      atom1.bonding[1][atom1.atomsBonded] = 1;
+      atom2.bonding[0][atom2.atomsBonded] = atom1.number;
+      atom2.bonding[1][atom2.atomsBonded] = 1;
+      atom1.bonds++;
+      atom1.atomsBonded++;
+      atom2.bonds++;
+      atom2.atomsBonded++;
+      atom1.connected = true;
+      atom2.connected = true;
+      if (atom1.element == "C") atom2.carbonsBonded++;
       complete = true;
     }
   }
@@ -40,7 +49,7 @@ class bond {
   }
 
   void increase() {
-    if (atom1.bonds < atom1.maxBonds && atom2.bonds < atom2.maxBonds) {
+    if (atom1.bonds < atom1.maxBonds && atom2.bonds < atom2.maxBonds && strength < 3) {
       atom1.bonds++;
       atom2.bonds++;
       strength++;
@@ -48,9 +57,10 @@ class bond {
   }
 
   void decrease() {
-    strength--;
-    if (strength < 1) {
-      //this = null;
+    if (strength > 1) {
+      strength--;
+      atom1.bonds--;
+      atom2.bonds--;
     }
   }
 
@@ -65,6 +75,13 @@ class bond {
       float angle = atan((end.y-start.y)/(end.x-start.x));
       line(start.x+3, start.y+3, end.x+3, end.y+3);
       line(start.x-3, start.y-3, end.x-3, end.y-3);
+    }
+    if (strength == 3) {
+      strokeWeight(3);
+      float angle = atan((end.y-start.y)/(end.x-start.x));
+      line(start.x+5, start.y+5, end.x+5, end.y+5);
+      line(start.x, start.y, end.x, end.y);
+      line(start.x-5, start.y-5, end.x-5, end.y-5);
     }
   }
 }

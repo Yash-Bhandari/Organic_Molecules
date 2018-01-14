@@ -1,13 +1,20 @@
 class atom {
   color c;
+  int number;
   int diameter;
   int maxBonds;
   int bonds = 0;
+  int atomsBonded = 0;
+  int carbonsBonded = 0;
   int xOffset = -7;
   int yOffset = 7;
+  int [][] bonding = new int[2][4];
+  //first row contains location of atom bonded to
+  //second row denotes bond strength
   String element;
   boolean clicked = false;
   boolean inUse = false;
+  boolean connected = false;
   PVector location = new PVector (0, 0);
 
   atom (String e) {
@@ -32,7 +39,9 @@ class atom {
       location.y = 300;
       break;
     }
+    number = currentAtom;
     element = e;
+    currentAtom++;
   }
 
   void display() {
@@ -41,7 +50,7 @@ class atom {
     ellipse(location.x, location.y, diameter, diameter);
     fill(0);
     textSize(20);
-    text(element, location.x+xOffset, location.y+yOffset);
+    text(number, location.x+xOffset, location.y+yOffset);
   }
 
   void move(int x, int y) {
