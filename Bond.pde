@@ -28,6 +28,7 @@ class bond {
       atom1.connected = true;
       atom2.connected = true;
       if (atom1.element == "C") atom2.carbonsBonded++;
+      if (atom2.element == "C") atom1.carbonsBonded++;
       complete = true;
     }
   }

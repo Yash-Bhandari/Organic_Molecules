@@ -50,7 +50,7 @@ class atom {
     ellipse(location.x, location.y, diameter, diameter);
     fill(0);
     textSize(20);
-    text(number, location.x+xOffset, location.y+yOffset);
+    text(element, location.x+xOffset, location.y+yOffset);
   }
 
   void move(int x, int y) {

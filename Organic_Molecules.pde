@@ -8,9 +8,14 @@ int c = 0;
 int h = 0;
 int o = 0;
 int current;
-int [] longest;
-int [] last;
-int [] checked;
+int numBranches;
+int branchLength;
+int[][] branches;
+int[] longest;
+int[] last;
+int[] checked;
+atom[] used;
+String name;
 
 void setup() {
   size(1000, 700);
@@ -60,7 +65,7 @@ void name() {
   h = 0;
   o = 0;
 
-  atom[] used = findUsed();
+  used = findUsed();
   checked = new int[999];
   longest = new int[0];
   last = new int[999];
@@ -71,14 +76,16 @@ void name() {
       checked[current] = used[i].number;
       current++;
       nextCarbon(used[i]);
-      println("Atom", used[i].number, "could be a starting carbon");
     }
   }
   if (o == 0 && h == c*2+2) alkane = true;
   println("Longest chain is", longest.length, "long");
   println("It is comprised of ");
   for (int i = 0; i < longest.length; i++) print(longest[i]);
+  longest = orderCarbons();
+  branches();
   println();
+  nameBranches();
   if (alkane) {
     switch(longest.length) {
     case 1: 
@@ -105,23 +112,160 @@ void name() {
     case 8: 
       println("octane");
       break;
+    case 9:
+      println("nonane");
+      break;
+    case 10:
+      println("decane");
+      break;
+    }
+  }
+  //println("There are", numBranches, "branches");
+  //for (int i = 0; i < numBranches; i++) println(branches[1][i], "long branch starting at", branches[0][i]);
+}
+
+int[] orderCarbons() {
+  int[] chain = new int[longest.length];
+  int leftDistance = 0;
+  int rightDistance = 0;
+  for (int i = 0; i < longest.length; i++) {
+    leftDistance++;
+    if (atoms[longest[i]].carbonsBonded > 2) {
+      i = longest.length;
+    }
+  }
+  for (int i = 0; i < longest.length; i++) {
+    rightDistance++;
+    if (atoms[longest[longest.length-(1+i)]].carbonsBonded > 2) {
+      i = longest.length;
+    }
+  }
+  //println();
+  if (leftDistance > rightDistance) {
+    for (int i = 0; i < longest.length; i++) chain[i] = longest[longest.length-1-i];
+    return chain;
+  }
+  return longest;
+}
+
+void nameBranches() {
+  int[] branchNames = new int [10]; 
+  for (int i = 0; i < numBranches; i++) {
+    branchNames[branches[1][i]]++;
+  }
+  boolean firstBranch = true; 
+  if (branchNames[2] > 0) {
+    if (!firstBranch) print("-"); 
+    firstBranch = false; 
+    boolean first = true; 
+    //boolean[] eBranchPoints = new boolean[currentAtom]; 
+    for (int i = 0; i < numBranches; i++) {
+      if (branches[1][i] == 2) {
+        if (!first) print(",");
+        print(branches[0][i]+1);
+        first = false;
+      }
+    }
+    //printBranchPoints(eBranchPoints); 
+    String prefix = prefix(branchNames[2]); 
+    print("-"+prefix); 
+    print("ethyl");
+  }
+  if (branchNames[1] > 0) {
+    if (!firstBranch) print("-"); 
+    firstBranch = false; 
+    //boolean[] mBranchPoints = new boolean[currentAtom]; 
+    boolean first = true;
+    for (int i = 0; i < numBranches; i++) {
+      if (branches[1][i] == 1) {
+        if (!first) print(",");
+        print(branches[0][i]+1);
+        first = false;
+        //mBranchPoints[branches[0][i]+1] = true;
+      }
+    }
+    //printBranchPoints(mBranchPoints); 
+    String prefix = prefix(branchNames[1]); 
+    print("-"+prefix); 
+    print("methyl");
+  }
+
+  if (branchNames[3] > 0) {
+    if (!firstBranch) print("-"); 
+    firstBranch = false; 
+    //boolean[] mBranchPoints = new boolean[currentAtom]; 
+    boolean first = true;
+    for (int i = 0; i < numBranches; i++) {
+      if (branches[1][i] == 3) {
+        if (!first) print(",");
+        print(branches[0][i]+1);
+        first = false;
+        //mBranchPoints[branches[0][i]+1] = true;
+      }
+    }
+    //printBranchPoints(mBranchPoints); 
+    String prefix = prefix(branchNames[3]); 
+    print("-"+prefix); 
+    print("propyl");
+  }
+}
+
+void printBranchPoints(boolean[] branchPoints) {
+  boolean first = true; 
+  for (int i = 0; i < branchPoints.length; i++) {
+    if (branchPoints[i]) {
+      if (!first) print(","); 
+      first = false; 
+      print(i);
     }
   }
 }
 
+String prefix(int num) {
+  switch(num) {
+  case 2 : 
+    return "di"; 
+  case 3 : 
+    return "tri";
+  case 4 :
+    return "tetra";
+  case 5 :
+    return "penta";
+  }
+  return "";
+}
+
 void branches() {
+  numBranches = 0; 
+  branches = new int[2][10]; 
   for (int i = 0; i < longest.length; i++) {
     if (atoms[longest[i]].carbonsBonded > 2) {
       for (int j = 0; j < atoms[longest[i]].atomsBonded; j++) {
-        boolean branch = false;
-        if (i > 0) {
+        boolean branch = false; 
+        if (i > 0 && i < longest.length-1) {
+          if (atoms[longest[i]].bonding[0][j] != longest[i-1] && atoms[longest[i]].bonding[0][j] != longest[i+1]) branch = true;
+        } else if (i > 0) {
           if (atoms[longest[i]].bonding[0][j] != longest[i-1]) branch = true;
+        } else if (i < longest.length-1) {
+          if (atoms[longest[i]].bonding[0][j] != longest[i+1]) branch = true;
         }
-        if (i < longest.length-1) {
-         if (atoms[longest[i]].bonding[0][j] != longest[i+1]) branch = true;
+        if (branch) {
+          branchLength = 1; 
+          branches[0][numBranches] = i; 
+          nextBranch(atoms[atoms[longest[i]].bonding[0][j]], atoms[longest[i]].number); 
+          branches[1][numBranches] = branchLength; 
+          numBranches++;
         }
-        if (branch)
       }
+    }
+  }
+}
+
+void nextBranch(atom c, int last) {
+  for (int i = 0; i < c.atomsBonded; i++) {
+    if (atoms[c.bonding[0][i]].element == "C" && c.bonding[0][i] != last) {
+      branchLength++; 
+      nextBranch(atoms[c.bonding[0][i]], c.number);
     }
   }
 }
@@ -130,57 +274,60 @@ void branches() {
 void nextCarbon(atom c) {
   for (int i = 0; i < c.atomsBonded; i++) {
     if (atoms[c.bonding[0][i]].element == "C" && c.bonding[0][i] != last[current-1]) {
-      last[current] = c.number;
-      checked[current] = c.bonding[0][i];
-      current++;
+      last[current] = c.number; 
+      checked[current] = c.bonding[0][i]; 
+      current++; 
       nextCarbon(atoms[c.bonding[0][i]]);
     }
   }
   if (current > longest.length) {
-    longest = new int[current];
-    for (int i = 0; i < current; i++) longest[i] = checked[i];
+    boolean multilevelBranching = false; 
+    for (int i = 0; i < used.length; i++) {
+      boolean included = false; 
+      for (int j = 0; j < current; j++) {
+        if (used[i].number == checked[j]) included = true;
+      }
+      if (!included && used[i].carbonsBonded > 2) multilevelBranching = true;
+    }
+    if (!multilevelBranching) {
+      longest = new int[current]; 
+      for (int i = 0; i < current; i++) longest[i] = checked[i];
+    }
   }
   current--;
 }
 
 //returns an array containing all atoms that are used in the molecule
 atom[] findUsed() {
-  int[] temp = new int [currentAtom];
-  int total = 0;
+  int[] temp = new int [currentAtom]; 
+  int total = 0; 
   for (int i = 0; i < currentAtom; i++) {
     if (atoms[i].connected) {
       if (atoms[i].element == "C") {
-        c++;
-        temp[total] = i;
+        c++; 
+        temp[total] = i; 
         total++;
       }
-      if (atoms[i].element == "H") h++;
+      if (atoms[i].element == "H") h++; 
       if (atoms[i].element == "O") o++;
     }
   }
 
-  atom[] used = new atom[total];
-  for (int i = 0; i < used.length; i++) used[i] = atoms[temp[i]];
+  atom[] used = new atom[total]; 
+  for (int i = 0; i < used.length; i++) used[i] = atoms[temp[i]]; 
   return used;
 }
 
 //prints the number of each element to the console
 void printCount() {
-  println(h, "hydrogens");
-  println(c, "carbons");
+  println(h, "hydrogens"); 
+  println(c, "carbons"); 
   println(o, "oxygens");
 }
 
 //checks if an atom could be a starting carbon
 boolean startingCarbon(atom c) {
-  int carbonsBonded = 0; 
-  // print("Atom", atoms[used[i]].number, "is bonded to ");
-  for (int i = 0; i < c.atomsBonded; i++) {
-    if (atoms[c.bonding[0][i]].element == "C") {
-      carbonsBonded++;
-    }
-  }
-  if (carbonsBonded <= 1) return true;
+  if (c.carbonsBonded <= 1) return true; 
   return false;
 }
 
