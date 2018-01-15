@@ -12,6 +12,7 @@ int numBranches;
 int branchLength;
 int[][] branches;
 int[] longest;
+int orientation = 1;
 int[] last;
 int[] checked;
 atom[] used;
@@ -82,8 +83,8 @@ void name() {
   println("Longest chain is", longest.length, "long");
   println("It is comprised of ");
   for (int i = 0; i < longest.length; i++) print(longest[i]);
-  longest = orderCarbons();
-  branches();
+  //orderCarbons();
+  branches(false);
   println();
   nameBranches();
   if (alkane) {
@@ -148,25 +149,81 @@ int[] orderCarbons() {
   return longest;
 }
 
+int[] reorderCarbons(int type) {
+  int[] chain = new int[longest.length];
+  int rightDistance = 0;
+  int leftDistance = longest.length;
+  for (int i = 0; i < numBranches; i++) {
+    if (branches[1][i] == type) {
+      if (longest.length-1-branches[0][i] > rightDistance) rightDistance = longest.length-1-branches[0][i];
+      if (branches[0][i] < leftDistance) leftDistance = branches[0][i];
+    }
+  }
+  println();
+  println("Left Distance", leftDistance);
+  println("Right Distance", rightDistance);
+  if (leftDistance > rightDistance) {
+    for (int i = 0; i < longest.length; i++) chain[i] = longest[longest.length-1-i];
+    return chain;
+  } else if (leftDistance == rightDistance) {
+    for (int i = 0; i < numBranches; i++) {
+      if (type == 4) {
+        if (branches[1][i] == 2) {
+          i = numBranches;
+          return reorderCarbons(2);
+        }
+      }
+      if (type == 2) {
+        if (branches[1][i] == 1) {
+          i = numBranches;
+          println("skrrt");
+          chain = reorderCarbons(1);
+          return chain;
+        }
+      }
+      if (type == 1) {
+        if (branches[1][i] == 3) {
+          i = numBranches;
+          return reorderCarbons(3);
+        }
+      }
+    }
+  }
+  return longest;
+}
+
 void nameBranches() {
   int[] branchNames = new int [10]; 
   for (int i = 0; i < numBranches; i++) {
     branchNames[branches[1][i]]++;
   }
   boolean firstBranch = true; 
+  if (branchNames[4] > 0) {
+    if (!firstBranch) print("-"); 
+    firstBranch = false; 
+    boolean first = true;
+    for (int i = 0; i < numBranches; i++) {
+      if (branches[1][i] == 4) {
+        if (!first) print(",");
+        print(branches[0][i]+1);
+        first = false;
+      }
+    }
+    String prefix = prefix(branchNames[4]); 
+    print("-"+prefix); 
+    print("butyl");
+  }
   if (branchNames[2] > 0) {
     if (!firstBranch) print("-"); 
     firstBranch = false; 
     boolean first = true; 
-    //boolean[] eBranchPoints = new boolean[currentAtom]; 
     for (int i = 0; i < numBranches; i++) {
       if (branches[1][i] == 2) {
         if (!first) print(",");
         print(branches[0][i]+1);
         first = false;
       }
-    }
-    //printBranchPoints(eBranchPoints); 
+    } 
     String prefix = prefix(branchNames[2]); 
     print("-"+prefix); 
     print("ethyl");
@@ -174,36 +231,29 @@ void nameBranches() {
   if (branchNames[1] > 0) {
     if (!firstBranch) print("-"); 
     firstBranch = false; 
-    //boolean[] mBranchPoints = new boolean[currentAtom]; 
     boolean first = true;
     for (int i = 0; i < numBranches; i++) {
       if (branches[1][i] == 1) {
         if (!first) print(",");
         print(branches[0][i]+1);
         first = false;
-        //mBranchPoints[branches[0][i]+1] = true;
       }
     }
-    //printBranchPoints(mBranchPoints); 
     String prefix = prefix(branchNames[1]); 
     print("-"+prefix); 
     print("methyl");
   }
-
   if (branchNames[3] > 0) {
     if (!firstBranch) print("-"); 
     firstBranch = false; 
-    //boolean[] mBranchPoints = new boolean[currentAtom]; 
     boolean first = true;
     for (int i = 0; i < numBranches; i++) {
       if (branches[1][i] == 3) {
         if (!first) print(",");
         print(branches[0][i]+1);
         first = false;
-        //mBranchPoints[branches[0][i]+1] = true;
       }
     }
-    //printBranchPoints(mBranchPoints); 
     String prefix = prefix(branchNames[3]); 
     print("-"+prefix); 
     print("propyl");
@@ -223,19 +273,29 @@ void printBranchPoints(boolean[] branchPoints) {
 
 String prefix(int num) {
   switch(num) {
-  case 2 : 
+  case 2: 
     return "di"; 
-  case 3 : 
+  case 3: 
     return "tri";
-  case 4 :
+  case 4:
     return "tetra";
-  case 5 :
+  case 5:
     return "penta";
+  case 6:
+    return "hexa";
+  case 7:
+    return "hepta";
+  case 8: 
+    return "octa";
   }
   return "";
 }
 
-void branches() {
+void branches(boolean orderedCarbons) {
+  boolean butyl = false;
+  boolean ethyl = false;
+  boolean methyl = false;
+  boolean propyl = false;
   numBranches = 0; 
   branches = new int[2][10]; 
   for (int i = 0; i < longest.length; i++) {
@@ -254,10 +314,21 @@ void branches() {
           branches[0][numBranches] = i; 
           nextBranch(atoms[atoms[longest[i]].bonding[0][j]], atoms[longest[i]].number); 
           branches[1][numBranches] = branchLength; 
+          if (branchLength == 1) methyl = true;
+          if (branchLength == 2) ethyl = true;
+          if (branchLength == 3) propyl = true;
+          if (branchLength == 4) butyl = true;
           numBranches++;
         }
       }
     }
+  }
+  if (!orderedCarbons) {
+    if (butyl) longest = reorderCarbons(4);
+    else if (ethyl) longest = reorderCarbons(2);
+    else if (methyl) longest = reorderCarbons(1);
+    else if (propyl) longest = reorderCarbons(3);
+    branches(true);
   }
 }
 
