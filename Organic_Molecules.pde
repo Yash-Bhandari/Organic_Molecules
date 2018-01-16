@@ -16,7 +16,7 @@ int orientation = 1;
 int[] last;
 int[] checked;
 atom[] used;
-String name;
+String name = "";
 
 void setup() {
   size(1000, 700);
@@ -58,8 +58,18 @@ void update() {
   }
 }
 
+//draws all atoms and their bonds
+void display() {
+  for (int i = 0; i < bonds.size(); i++) bonds.get(i).display(); 
+  for (int i = 0; i < currentAtom; i++) atoms[i].display();
+  fill(0);
+  textSize(20);
+  text(name, 420-name.length()*5, 600);
+}
+
 //names the organic molecule
 void name() {
+  name = "";
   boolean alkane = true;
   boolean cyclo = false;
   c = 0;
@@ -90,39 +100,51 @@ void name() {
   if (alkane) {
     switch(longest.length) {
     case 1: 
-      println("methane");
+      name+=("methane");
       break;
     case 2: 
-      println("ethane");
+      name+=("ethane");
       break;
     case 3: 
-      println("propane");
+      name+=("propane");
       break;
     case 4: 
-      println("butane");
+      name+=("butane");
       break;
     case 5: 
-      println("pentane");
+      name+=("pentane");
       break;
     case 6: 
-      println("hexane");
+      name+=("hexane");
       break;
     case 7: 
-      println("heptane");
+      name+=("heptane");
       break;
     case 8: 
-      println("octane");
+      name+=("octane");
       break;
     case 9:
-      println("nonane");
+      name+=("nonane");
       break;
     case 10:
-      println("decane");
+      name+=("decane");
       break;
+    case 11:
+      name+="undecane";
+      break;
+    case 12:
+      name+="dodecane";
+      break;
+    case 13:
+      name+="tridecane";
+      break;
+    case 14:
+      name+="tetradecane";
     }
   }
   //println("There are", numBranches, "branches");
   //for (int i = 0; i < numBranches; i++) println(branches[1][i], "long branch starting at", branches[0][i]);
+  println(name);
 }
 
 int[] orderCarbons() {
@@ -204,70 +226,59 @@ void nameBranches() {
     boolean first = true;
     for (int i = 0; i < numBranches; i++) {
       if (branches[1][i] == 4) {
-        if (!first) print(",");
-        print(branches[0][i]+1);
+        if (!first) name+=(",");
+        name+=(branches[0][i]+1);
         first = false;
       }
     }
     String prefix = prefix(branchNames[4]); 
-    print("-"+prefix); 
-    print("butyl");
+    name+=("-"+prefix); 
+    name+=("butyl");
   }
   if (branchNames[2] > 0) {
-    if (!firstBranch) print("-"); 
+    if (!firstBranch) name+=("-"); 
     firstBranch = false; 
     boolean first = true; 
     for (int i = 0; i < numBranches; i++) {
       if (branches[1][i] == 2) {
-        if (!first) print(",");
-        print(branches[0][i]+1);
+        if (!first) name+=(",");
+        name+=(branches[0][i]+1);
         first = false;
       }
     } 
     String prefix = prefix(branchNames[2]); 
-    print("-"+prefix); 
-    print("ethyl");
+    name+=("-"+prefix); 
+    name+=("ethyl");
   }
   if (branchNames[1] > 0) {
-    if (!firstBranch) print("-"); 
+    if (!firstBranch) name+=("-"); 
     firstBranch = false; 
     boolean first = true;
     for (int i = 0; i < numBranches; i++) {
       if (branches[1][i] == 1) {
-        if (!first) print(",");
-        print(branches[0][i]+1);
+        if (!first) name+=(",");
+        name+=(branches[0][i]+1);
         first = false;
       }
     }
     String prefix = prefix(branchNames[1]); 
-    print("-"+prefix); 
-    print("methyl");
+    name+=("-"+prefix); 
+    name+=("methyl");
   }
   if (branchNames[3] > 0) {
-    if (!firstBranch) print("-"); 
+    if (!firstBranch) name+=("-"); 
     firstBranch = false; 
     boolean first = true;
     for (int i = 0; i < numBranches; i++) {
       if (branches[1][i] == 3) {
-        if (!first) print(",");
-        print(branches[0][i]+1);
+        if (!first) name+=(",");
+        name+=(branches[0][i]+1);
         first = false;
       }
     }
     String prefix = prefix(branchNames[3]); 
-    print("-"+prefix); 
-    print("propyl");
-  }
-}
-
-void printBranchPoints(boolean[] branchPoints) {
-  boolean first = true; 
-  for (int i = 0; i < branchPoints.length; i++) {
-    if (branchPoints[i]) {
-      if (!first) print(","); 
-      first = false; 
-      print(i);
-    }
+    name+=("-"+prefix); 
+    name+=("propyl");
   }
 }
 
@@ -402,12 +413,6 @@ boolean startingCarbon(atom c) {
   return false;
 }
 
-//draws all atoms and their bonds
-void display() {
-  for (int i = 0; i < bonds.size(); i++) bonds.get(i).display(); 
-  for (int i = 0; i < currentAtom; i++) atoms[i].display();
-}
-
 void mousePressed() {
   if (mouseButton == LEFT) leftClick(); 
   if (mouseButton == RIGHT) rightClick();
@@ -488,4 +493,13 @@ void status() {
 
 void keyPressed() {
   if (key == ' ') name();
+  if (!clicking) {
+    if (key == 'c') {
+      atomClicked = currentAtom;
+      atoms[currentAtom] = new atom("C");
+      atoms[currentAtom-1].move(mouseX, mouseY);
+      atoms[currentAtom-1].clicked = true;
+      clicking = true;
+    }
+  }
 }
