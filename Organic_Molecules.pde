@@ -7,6 +7,7 @@ int[] newAtoms = {0, 1, 2};
 int c = 0;
 int h = 0;
 int o = 0;
+int doubleBonds = 0;
 int current;
 int numBranches;
 int branchLength;
@@ -82,6 +83,7 @@ void name() {
   last = new int[999];
   for (int i = 0; i < used.length; i++) {
     if (startingCarbon(used[i])) {
+      doubleBonds = 0;
       last[0] = used[i].number;
       current = 0;
       checked[current] = used[i].number;
@@ -93,7 +95,6 @@ void name() {
   println("Longest chain is", longest.length, "long");
   println("It is comprised of ");
   for (int i = 0; i < longest.length; i++) print(longest[i]);
-  //orderCarbons();
   branches(false);
   println();
   nameBranches();
@@ -140,11 +141,24 @@ void name() {
       break;
     case 14:
       name+="tetradecane";
+      break;
+    case 15:
+      name+="pentadecane";
+      break;
     }
   }
   //println("There are", numBranches, "branches");
   //for (int i = 0; i < numBranches; i++) println(branches[1][i], "long branch starting at", branches[0][i]);
   println(name);
+}
+
+boolean isAlkene() {
+  for (int i = 0; i < used.length; i++) {
+    for (int j = 0; j < used[i].atomsBonded; j++) {
+      if (used[i].bonding[1][j] == 2) return true;
+    }
+  }
+  return false;
 }
 
 int[] orderCarbons() {

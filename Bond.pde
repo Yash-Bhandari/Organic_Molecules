@@ -67,6 +67,10 @@ class bond {
 
   void display() {
     stroke(0);
+    float dir1 = atan((end.y-start.y)/(end.x-start.x));
+    float dir2 = atan((start.y-end.y)/(start.x-end.x));
+    int radius = 15;
+    float displacement = 0.3;
     if (strength == 1) {
       strokeWeight(5);
       line(start.x, start.y, end.x, end.y);
@@ -74,15 +78,15 @@ class bond {
     if (strength == 2) {
       strokeWeight(3);
       float angle = atan((end.y-start.y)/(end.x-start.x));
-      line(start.x+3, start.y+3, end.x+3, end.y+3);
-      line(start.x-3, start.y-3, end.x-3, end.y-3);
+      line(start.x+cos(dir1+displacement)*radius, start.y+sin(dir1+displacement)*radius, end.x+cos(dir2+displacement)*radius, end.y+sin(dir2+displacement)*radius);
+      line(start.x+cos(dir1-displacement)*radius, start.y+sin(dir1-displacement)*radius, end.x+cos(dir2-displacement)*radius, end.y+sin(dir2-displacement)*radius);
     }
     if (strength == 3) {
       strokeWeight(3);
-      float angle = atan((end.y-start.y)/(end.x-start.x));
-      line(start.x+5, start.y+5, end.x+5, end.y+5);
+      radius = 20;
+      line(start.x+cos(dir1+displacement)*radius, start.y+sin(dir1+displacement)*radius, end.x+cos(dir2+displacement)*radius, end.y+sin(dir2+displacement)*radius);
+      line(start.x+cos(dir1-displacement)*radius, start.y+sin(dir1-displacement)*radius, end.x+cos(dir2-displacement)*radius, end.y+sin(dir2-displacement)*radius);
       line(start.x, start.y, end.x, end.y);
-      line(start.x-5, start.y-5, end.x-5, end.y-5);
     }
   }
 }
