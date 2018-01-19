@@ -7,7 +7,10 @@ int[] newAtoms = {0, 1, 2};
 int c = 0;
 int h = 0;
 int o = 0;
-int doubleBonds = 0;
+int doubleBonds;
+int checkedDouble;
+int tripleBonds;
+int checkedTriple;
 int current;
 int numBranches;
 int branchLength;
@@ -18,6 +21,8 @@ int[] last;
 int[] checked;
 atom[] used;
 String name = "";
+String type = "";
+int bondStrength;
 
 void setup() {
   size(1000, 700);
@@ -71,19 +76,19 @@ void display() {
 //names the organic molecule
 void name() {
   name = "";
-  boolean alkane = true;
-  boolean cyclo = false;
   c = 0;
   h = 0;
   o = 0;
 
+  findType();
   used = findUsed();
   checked = new int[999];
   longest = new int[0];
   last = new int[999];
   for (int i = 0; i < used.length; i++) {
     if (startingCarbon(used[i])) {
-      doubleBonds = 0;
+      checkedDouble = 0;
+      checkedTriple = 0;
       last[0] = used[i].number;
       current = 0;
       checked[current] = used[i].number;
@@ -91,137 +96,62 @@ void name() {
       nextCarbon(used[i]);
     }
   }
-  if (o == 0 && h == c*2+2) alkane = true;
-  println("Longest chain is", longest.length, "long");
-  println("It is comprised of ");
-  for (int i = 0; i < longest.length; i++) print(longest[i]);
-  branches(false);
+
+
+
+  //branches(false);
   println();
-  nameBranches();
-  if (alkane) {
-    switch(longest.length) {
-    case 1: 
-      name+=("methane");
-      break;
-    case 2: 
-      name+=("ethane");
-      break;
-    case 3: 
-      name+=("propane");
-      break;
-    case 4: 
-      name+=("butane");
-      break;
-    case 5: 
-      name+=("pentane");
-      break;
-    case 6: 
-      name+=("hexane");
-      break;
-    case 7: 
-      name+=("heptane");
-      break;
-    case 8: 
-      name+=("octane");
-      break;
-    case 9:
-      name+=("nonane");
-      break;
-    case 10:
-      name+=("decane");
-      break;
-    case 11:
-      name+="undecane";
-      break;
-    case 12:
-      name+="dodecane";
-      break;
-    case 13:
-      name+="tridecane";
-      break;
-    case 14:
-      name+="tetradecane";
-      break;
-    case 15:
-      name+="pentadecane";
-      break;
-    }
-  }
-  //println("There are", numBranches, "branches");
-  //for (int i = 0; i < numBranches; i++) println(branches[1][i], "long branch starting at", branches[0][i]);
+  //nameBranches();
+  nameChain();
   println(name);
+  status();
 }
 
-boolean isAlkene() {
-  for (int i = 0; i < used.length; i++) {
-    for (int j = 0; j < used[i].atomsBonded; j++) {
-      if (used[i].bonding[1][j] == 2) return true;
-    }
+void findType() {
+  doubleBonds = 0;
+  tripleBonds = 0;
+  for (int i = 0; i < bonds.size(); i++) {
+    if (bonds.get(i).strength == 3) tripleBonds++;
+    if (bonds.get(i).strength == 2) doubleBonds++;
   }
-  return false;
+  if (tripleBonds > 0) type = "alkyne";
+  else if (doubleBonds > 0) type = "alkene";
+  else type = "alkane";
 }
 
-int[] orderCarbons() {
-  int[] chain = new int[longest.length];
-  int leftDistance = 0;
-  int rightDistance = 0;
-  for (int i = 0; i < longest.length; i++) {
-    leftDistance++;
-    if (atoms[longest[i]].carbonsBonded > 2) {
-      i = longest.length;
-    }
-  }
-  for (int i = 0; i < longest.length; i++) {
-    rightDistance++;
-    if (atoms[longest[longest.length-(1+i)]].carbonsBonded > 2) {
-      i = longest.length;
-    }
-  }
-  //println();
-  if (leftDistance > rightDistance) {
-    for (int i = 0; i < longest.length; i++) chain[i] = longest[longest.length-1-i];
-    return chain;
-  }
-  return longest;
-}
-
-int[] reorderCarbons(int type) {
+//returns an array of the carbons in the longest chain in correct order
+int[] reorderCarbons(int branch) {
   int[] chain = new int[longest.length];
   int rightDistance = 0;
   int leftDistance = longest.length;
+  if (type == "alkene") {
+    for (int i = 0; i < bonds.size(); i++) {
+    }
+  }
   for (int i = 0; i < numBranches; i++) {
-    if (branches[1][i] == type) {
+    if (branches[1][i] == branch) {
       if (longest.length-1-branches[0][i] > rightDistance) rightDistance = longest.length-1-branches[0][i];
       if (branches[0][i] < leftDistance) leftDistance = branches[0][i];
     }
   }
-  println();
-  println("Left Distance", leftDistance);
-  println("Right Distance", rightDistance);
   if (leftDistance > rightDistance) {
     for (int i = 0; i < longest.length; i++) chain[i] = longest[longest.length-1-i];
     return chain;
   } else if (leftDistance == rightDistance) {
     for (int i = 0; i < numBranches; i++) {
-      if (type == 4) {
-        if (branches[1][i] == 2) {
-          i = numBranches;
-          return reorderCarbons(2);
-        }
+      if (branches[1][i] == 2) {
+        i = numBranches;
+        return reorderCarbons(2);
       }
-      if (type == 2) {
-        if (branches[1][i] == 1) {
-          i = numBranches;
-          println("skrrt");
-          chain = reorderCarbons(1);
-          return chain;
-        }
+      if (branches[1][i] == 1) {
+        i = numBranches;
+        chain = reorderCarbons(1);
+        return chain;
       }
-      if (type == 1) {
-        if (branches[1][i] == 3) {
-          i = numBranches;
-          return reorderCarbons(3);
-        }
+      if (branches[1][i] == 3) {
+        i = numBranches;
+        chain = reorderCarbons(3);
+        return reorderCarbons(3);
       }
     }
   }
@@ -373,24 +303,46 @@ void nextCarbon(atom c) {
       last[current] = c.number; 
       checked[current] = c.bonding[0][i]; 
       current++; 
+      if (type == "alkene" && c.bonding[1][i] == 2) {
+        nextCarbon(atoms[c.bonding[0][i]]);
+        checkedDouble++;
+      }
+      if (type == "alkyne" && c.bonding[1][i] == 3) {
+        nextCarbon(atoms[c.bonding[0][i]]);
+        checkedTriple++;
+      }
       nextCarbon(atoms[c.bonding[0][i]]);
     }
   }
   if (current > longest.length) {
-    boolean multilevelBranching = false; 
-    for (int i = 0; i < used.length; i++) {
-      boolean included = false; 
-      for (int j = 0; j < current; j++) {
-        if (used[i].number == checked[j]) included = true;
+    if (!multiLevelBranching()) {
+      if (type == "alkane") {
+        longest = new int[current]; 
+        for (int i = 0; i < current; i++) longest[i] = checked[i];
       }
-      if (!included && used[i].carbonsBonded > 2) multilevelBranching = true;
-    }
-    if (!multilevelBranching) {
-      longest = new int[current]; 
-      for (int i = 0; i < current; i++) longest[i] = checked[i];
+      if (type == "alkene" && checkedDouble == doubleBonds) {
+        longest = new int[current]; 
+        for (int i = 0; i < current; i++) longest[i] = checked[i];
+      }
+      if (type == "alkyne" && checkedTriple == tripleBonds) {
+        longest = new int[current]; 
+        for (int i = 0; i < current; i++) longest[i] = checked[i];
+      }
     }
   }
   current--;
+}
+
+//finds if there are branches with branches
+boolean multiLevelBranching() {
+  for (int i = 0; i < used.length; i++) {
+    boolean included = false; 
+    for (int j = 0; j < current; j++) {
+      if (used[i].number == checked[j]) included = true;
+    }
+    if (!included && used[i].carbonsBonded > 2) return true;
+  }
+  return false;
 }
 
 //returns an array containing all atoms that are used in the molecule
@@ -408,7 +360,7 @@ atom[] findUsed() {
       if (atoms[i].element == "O") o++;
     }
   }
-
+  println(doubleBonds, "double bonds");
   atom[] used = new atom[total]; 
   for (int i = 0; i < used.length; i++) used[i] = atoms[temp[i]]; 
   return used;
@@ -500,8 +452,69 @@ void rightClick() {
 }
 
 void status() {
-  for (int i = 0; i < 2; i++) {
-    if (atoms[i].inUse) println("This", atoms[i].element, "is bonded to a", atoms[atoms[i].bonding[0][0]].element);
+  /*for (int i = 0; i < 2; i++) {
+   if (atoms[i].inUse) println("This", atoms[i].element, "is bonded to a", atoms[atoms[i].bonding[0][0]].element);
+   }*/
+
+  println("Longest chain is", longest.length, "long");
+  println("It is comprised of ");
+  for (int i = 0; i < longest.length; i++) print(longest[i]);
+  println();
+  println("There are", numBranches, "branches");
+  for (int i = 0; i < numBranches; i++) println(branches[1][i], "long branch starting at", branches[0][i]);
+  println();
+}
+
+
+void nameChain() {
+  if (type == "alkane") {
+    switch(longest.length) {
+    case 1: 
+      name+=("methane");
+      break;
+    case 2: 
+      name+=("ethane");
+      break;
+    case 3: 
+      name+=("propane");
+      break;
+    case 4: 
+      name+=("butane");
+      break;
+    case 5: 
+      name+=("pentane");
+      break;
+    case 6: 
+      name+=("hexane");
+      break;
+    case 7: 
+      name+=("heptane");
+      break;
+    case 8: 
+      name+=("octane");
+      break;
+    case 9:
+      name+=("nonane");
+      break;
+    case 10:
+      name+=("decane");
+      break;
+    case 11:
+      name+="undecane";
+      break;
+    case 12:
+      name+="dodecane";
+      break;
+    case 13:
+      name+="tridecane";
+      break;
+    case 14:
+      name+="tetradecane";
+      break;
+    case 15:
+      name+="pentadecane";
+      break;
+    }
   }
 }
 

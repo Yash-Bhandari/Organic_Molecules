@@ -52,17 +52,28 @@ class bond {
   void increase() {
     if (atom1.bonds < atom1.maxBonds && atom2.bonds < atom2.maxBonds && strength < 3) {
       atom1.bonds++;
+      atom1.bonding[1][findBond(atom1, atom2)]++;
       atom2.bonds++;
+      atom2.bonding[1][findBond(atom2, atom1)]++;
       strength++;
     }
   }
 
   void decrease() {
     if (strength > 1) {
-      strength--;
       atom1.bonds--;
+      atom1.bonding[1][findBond(atom1, atom2)]--;
       atom2.bonds--;
+      atom2.bonding[1][findBond(atom2, atom1)]--;
+      strength--;
     }
+  }
+
+  int findBond(atom a1, atom a2) {
+    for (int i = 0; i < a1.atomsBonded; i++) {
+      if (a1.bonding[0][i] == a2.number) return i;
+    }
+    return 0;
   }
 
   void display() {
