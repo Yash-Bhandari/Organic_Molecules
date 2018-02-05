@@ -45,24 +45,61 @@ class bond {
   boolean click(int x, int y) {
     float m = (end.y-start.y)/(end.x-start.x);
     float b = end.y-end.x*m;
-    if (abs(m*x+b-y) < 5) return true;
+    if (abs(m*x+b-y) < 5) {
+      if (within(x, y)) return true;
+    }
+    return false;
+  }
+
+  boolean within(int x, int y) {
+    float lowX;
+    float highX;
+    float lowY;
+    float highY;
+    if (atom1.location.x > atom2.location.x) {
+      lowX = atom2.location.x;
+      highX = atom1.location.x;
+    } else {
+      lowX = atom1.location.x;
+      highX = atom2.location.x;
+    }
+
+    if (atom1.location.y > atom2.location.y) {
+      lowY = atom2.location.y;
+      highY = atom1.location.y;
+    } else {
+      lowY = atom1.location.y;
+      highY = atom2.location.y;
+    }
+    if (x > lowX-5 && x < highX+5 && y > lowY-5 && y < highY+5) return true;
     return false;
   }
 
   void increase() {
     if (atom1.bonds < atom1.maxBonds && atom2.bonds < atom2.maxBonds && strength < 3) {
       atom1.bonds++;
+      atom1.bonding[1][findBond(atom1, atom2)]++;
       atom2.bonds++;
+      atom2.bonding[1][findBond(atom2, atom1)]++;
       strength++;
     }
   }
 
   void decrease() {
     if (strength > 1) {
-      strength--;
       atom1.bonds--;
+      atom1.bonding[1][findBond(atom1, atom2)]--;
       atom2.bonds--;
+      atom2.bonding[1][findBond(atom2, atom1)]--;
+      strength--;
     }
+  }
+
+  int findBond(atom a1, atom a2) {
+    for (int i = 0; i < a1.atomsBonded; i++) {
+      if (a1.bonding[0][i] == a2.number) return i;
+    }
+    return 0;
   }
 
   void display() {

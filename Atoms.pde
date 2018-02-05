@@ -9,8 +9,8 @@ class atom {
   int xOffset = -7;
   int yOffset = 7;
   int [][] bonding = new int[2][4];
-  //first row contains location of atom bonded to
-  //second row denotes bond strength
+  //bonding[0][x] contains location of atom bonded to
+  //bonding[1][x] denotes bond strength
   String element;
   boolean clicked = false;
   boolean inUse = false;
